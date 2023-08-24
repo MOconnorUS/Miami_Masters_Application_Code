@@ -31,12 +31,7 @@ import math
 # URL = "https://www.checkmategaming.com/tournament/cross-platform/call-of-duty-modern-warfare-ii/console-only-2v2-snd-best-of-1-190448"
 # URL_begin = "https://www.checkmategaming.com/tournament/cross-platform/call-of-duty-modern-warfare-ii"
 # driver = webdriver.Chrome(ChromeDriverManager().install())
-
-
-
-#### IMPORTANT: you will need to set a bound for each piece of code here or else it will look through outdate tourneys as well
-
-def clean_links(paths):
+def __clean_links(paths):
     dupes = []
     unique = []
 
@@ -102,150 +97,194 @@ def get_link(driver, URL_begin):
 
     return paths
 
-# Inputs: soup
-# Returns the a list with the date and time
-# element with the date and time is a span with class tournament-details-date-text
-def get_datetime(soup):
-    date_time_res = soup.find_all('span', {'class': 'tournament-details-date-text'})
-    date_time_abrev = date_time_res[0].text.strip()
-    abrev_month = parse(date_time_abrev[0:date_time_abrev.find(' ')])
-    month = abrev_month.strftime('%B')
-    date_time_abrev = date_time_abrev[date_time_abrev.find(' '):]
+class CMG_Tourney:
+    def __init__(self, url):
+        cmg_info = cmg_tourney_info(driver, url)
+        self.date = cmg_info['date']
+        self.time = cmg_info['time']
+        self.title = cmg_info['title']
+        self.entry = cmg_info['entry']
+        self.region = cmg_info['region']
+        self.platforms = cmg_info['platforms']
+        self.game = cmg_info['game']
+        self.requirements = cmg_info['requirements']
+        self.skill = cmg_info['skill']
+        self.url = url
 
-    date_time = month + date_time_abrev
-    date_time_list = date_time.split()
+    # Inputs: soup
+    # Returns the a list with the date and time
+    # element with the date and time is a span with class tournament-details-date-text
+    def __datetime(soup):
+        date_time_res = soup.find_all('span', {'class': 'tournament-details-date-text'})
+        date_time_abrev = date_time_res[0].text.strip()
+        abrev_month = parse(date_time_abrev[0:date_time_abrev.find(' ')])
+        month = abrev_month.strftime('%B')
+        date_time_abrev = date_time_abrev[date_time_abrev.find(' '):]
 
-    fin_time = date_time_list[2] + ' ' + date_time_list[3]
-    day = date_time_list[1][:-2]
-    date = date_time_list[0] + ' ' + day + ', ' + abrev_month.strftime('%Y')
+        date_time = month + date_time_abrev
+        date_time_list = date_time.split()
 
-    fin_datetime = []
-    fin_datetime.append(date)
-    fin_datetime.append(fin_time)
+        fin_time = date_time_list[2] + ' ' + date_time_list[3]
+        day = date_time_list[1][:-2]
+        date = date_time_list[0] + ' ' + day + ', ' + abrev_month.strftime('%Y')
+
+        fin_datetime = []
+        fin_datetime.append(date)
+        fin_datetime.append(fin_time)
     
-    return fin_datetime
+        return fin_datetime
 
-# Inputs: soup
-# Returns a list containing the title and platform
-# element containing the title and platform is an h4 tag
-def get_title_plat(soup):
-    title_res = soup.find('h4')
-    title_strip = title_res.text.strip()
-    title_strip_upper = title_strip.upper()
-    platforms = 'ALL'
+    # Inputs: soup
+    # Returns a list containing the title and platform
+    # element containing the title and platform is an h4 tag
+    def __title_plat(soup):
+        title_res = soup.find('h4')
+        title_strip = title_res.text.strip()
+        title_strip_upper = title_strip.upper()
+        platforms = 'ALL'
 
-    if title_strip_upper.find('FREE ENTRY') != -1:
-        title_strip_upper = title_strip_upper[title_strip_upper.find('FREE ENTRY') + 11:]
+        if title_strip_upper.find('FREE ENTRY') != -1:
+            title_strip_upper = title_strip_upper[title_strip_upper.find('FREE ENTRY') + 11:]
 
-    if title_strip_upper.find('NOV AM') != -1:
-        title_strip_upper = title_strip_upper[title_strip_upper.find('NOV AM') + 7:]
+        if title_strip_upper.find('NOV AM') != -1:
+            title_strip_upper = title_strip_upper[title_strip_upper.find('NOV AM') + 7:]
 
-    if title_strip_upper.find('NOVICE AMATEUR') != -1:
-        title_strip_upper = title_strip_upper[title_strip_upper.find('NOVICE AMATEUR') + 15:]
+        if title_strip_upper.find('NOVICE AMATEUR') != -1:
+            title_strip_upper = title_strip_upper[title_strip_upper.find('NOVICE AMATEUR') + 15:]
 
-    if title_strip_upper.find('AMATEUR EXPERT') != -1:
-        title_strip_upper = title_strip_upper[title_strip_upper.find('AMATEUR EXPERT') + 15:]
+        if title_strip_upper.find('AMATEUR EXPERT') != -1:
+            title_strip_upper = title_strip_upper[title_strip_upper.find('AMATEUR EXPERT') + 15:]
 
-    if title_strip_upper.find('CONSOLE ONLY') != -1:
-        platforms = 'CONSOLE ONLY'
-        title_strip_upper = title_strip_upper[title_strip_upper.find('CONSOLE ONLY') + 13:]
+        if title_strip_upper.find('CONSOLE ONLY') != -1:
+            platforms = 'CONSOLE ONLY'
+            title_strip_upper = title_strip_upper[title_strip_upper.find('CONSOLE ONLY') + 13:]
     
-    title_plat = []
-    title_plat.append(title_strip_upper)
-    title_plat.append(platforms)
+        title_plat = []
+        title_plat.append(title_strip_upper)
+        title_plat.append(platforms)
 
-    return title_plat
+        return title_plat
 
-# Inputs: soup
-# Returns the skill
-# element with the skill is a span with class elo-skill-level
-def get_skill(soup):
-    skill_res = soup.find_all('span', {'class': 'elo-skill-level'})
-    skill = []
-    for i in skill_res:
-        skill.append(i.text.strip())
+    # Inputs: soup
+    # Returns the skill
+    # element with the skill is a span with class elo-skill-level
+    def __skill(soup):
+        skill_res = soup.find_all('span', {'class': 'elo-skill-level'})
+        skill = []
+        for i in skill_res:
+            skill.append(i.text.strip())
 
-    return skill
+        return skill
 
-# Inputs: soup
-# Returns the region
-# element with region is a span with class region-transparent-container
-def get_region(soup):
-    region_res = soup.find('span', {'class': 'region-transparent-container'})
-    region = region_res.text.strip()
+    # Inputs: soup
+    # Returns the region
+    # element with region is a span with class region-transparent-container
+    def __region(soup):
+        region_res = soup.find('span', {'class': 'region-transparent-container'})
+        region = region_res.text.strip()
     
-    return region
+        return region
 
-# Inputs: soup
-# Returns the entry fee
-# element with requirements is a div with class tournament-details-entry-info
-def get_entry(soup):
-    entry_res = soup.find('div', {'class': 'tournament-details-entry-info'})
-    entry_str = entry_res.text.strip()
-    entry_long = entry_str[entry_str.find('\n') + 1:]
-    entry = entry_long[0:entry_long.find('\n')]
+    # Inputs: soup
+    # Returns the entry fee
+    # element with requirements is a div with class tournament-details-entry-info
+    def __entry(soup):
+        entry_res = soup.find('div', {'class': 'tournament-details-entry-info'})
+        entry_str = entry_res.text.strip()
+        entry_long = entry_str[entry_str.find('\n') + 1:]
+        entry = entry_long[0:entry_long.find('\n')]
     
-    return entry
+        return entry
 
-# Inputs: soup
-# Returns the requirements
-# element with requirements is a span with class tournament-details-ruleset-text
-def get_req(soup):
-    req_res = soup.find('span', {'class': 'tournament-details-ruleset-text'})
-    if req_res == None:
-        req = 'NONE'
-        return req
-    else:
-        req_str = req_res.text.strip()
-        req_str = req_str.upper()
-        req = req_str[req_str.find('CONSOLE ONLY'):]
+    # Inputs: soup
+    # Returns the requirements
+    # element with requirements is a span with class tournament-details-ruleset-text
+    def __req(soup):
+        req_res = soup.find('span', {'class': 'tournament-details-ruleset-text'})
+        if req_res == None:
+            req = 'NONE'
+            return req
+        else:
+            req_str = req_res.text.strip()
+            req_str = req_str.upper()
+            req = req_str[req_str.find('CONSOLE ONLY'):]
 
-        return req
+            return req
 
-# Inputs: soup
-# Returns the game
-# element with game currently is a div with class tournament-details-info-header
-def get_game(soup):
-    game_res = soup.find('div', {'class': 'tournament-details-info-header'})
-    game_str = game_res.text.strip()
-    game_str = game_str.upper()
-    game = game_str[game_str.find('CALL'):game_str.find('II') + 2]
+    # Inputs: soup
+    # Returns the game
+    # element with game currently is a div with class tournament-details-info-header
+    def __game(soup):
+        game_res = soup.find('div', {'class': 'tournament-details-info-header'})
+        game_str = game_res.text.strip()
+        game_str = game_str.upper()
+        game = game_str[game_str.find('CALL'):game_str.find('II') + 2]
 
-    return game
+        return game
 
-# Inputs: driver, URL
-# Returns a dictionary containing all values we are looking for
-# date, time, title, platforms, game, region, skill, entry, requirements
-def get_cmg(driver, URL):
-    driver.get(URL)
+    # Inputs: driver, URL
+    # Returns a dictionary containing all values we are looking for
+    # date, time, title, platforms, game, region, skill, entry, requirements
+    def __cmg_tourney_info(driver, URL):
+        driver.get(URL)
 
-    time.sleep(5)
+        time.sleep(5)
 
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-    datetime = get_datetime(soup)
-    date = datetime[0]
-    ttime = datetime[1]
+        date_time = self.__datetime(soup)
+        date = date_time[0]
+        ttime = date_time[1]
 
-    title_plat = get_title_plat(soup)
-    title = title_plat[0]
-    platforms = title_plat[1]
+        title_platforms = self.__title_plat(soup)
+        title = title_platforms[0]
+        platforms = title_platforms[1]
 
-    skill_list = get_skill(soup)
-    skill = ''
-    if len(skill_list) == 0:
-        skill = 'All'
-    else:
-        for i in skill_list:
-            skill = i + ' ' + skill
+        skill_list = self.__skill(soup)
+        skills = ''
+        if len(skill_list) == 0:
+            skills = 'All'
+        else:
+            for i in skill_list:
+                skills = i + ' ' + skills
     
-    region = get_region(soup)
-    entry = get_entry(soup)
-    req = get_req(soup)
-    game = get_game(soup)
+        regions = self.__region(soup)
+        entryfee = self.__entry(soup)
+        req = self.__req(soup)
+        games = self.__game(soup)
     
-    info = {"date": date, "time": ttime, "title": title, "entry": entry, "region": region, "platforms": platforms, "game": game, "requirements": req, "skill": skill}
-    return info    
+        info = {"date": date, "time": ttime, "title": title, "entry": entryfee, "region": regions, "platforms": platforms, "game": games, "requirements": req, "skill": skills}
+        return info
+
+    def get_date():
+        return self.date
+    
+    def get_time():
+        return self.time
+
+    def get_title():
+        return self.title
+
+    def get_entry():
+        return self.entry
+
+    def get_region():
+        return self.region
+
+    def get_platforms():
+        return self.platforms
+
+    def get_game():
+        return self.game
+
+    def get_requirements():
+        return self.requirements
+
+    def get_skill():
+        return self.skill
+
+    def set_url(self, url):
+        self.url = url
 
 # print(cmg_tourney_info(driver, URL_begin))
 # print(cmg_tourney_region(driver, URL_begin)) 
