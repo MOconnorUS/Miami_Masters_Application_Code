@@ -31,7 +31,7 @@ import math
 # URL = "https://www.checkmategaming.com/tournament/cross-platform/call-of-duty-modern-warfare-ii/console-only-2v2-snd-best-of-1-190448"
 # URL_begin = "https://www.checkmategaming.com/tournament/cross-platform/call-of-duty-modern-warfare-ii"
 # driver = webdriver.Chrome(ChromeDriverManager().install())
-def __clean_links(paths):
+def clean_links(paths):
     dupes = []
     unique = []
 
@@ -98,7 +98,7 @@ def get_link(driver, URL_begin):
     return paths
 
 class CMG_Tourney:
-    def __init__(self, url):
+    def __init__(self, driver, url):
         cmg_info = cmg_tourney_info(driver, url)
         self.date = cmg_info['date']
         self.time = cmg_info['time']
@@ -283,8 +283,8 @@ class CMG_Tourney:
     def get_skill():
         return self.skill
 
-    def set_url(self, url):
-        self.url = url
+    def get_url():
+        return self.url
 
 # print(cmg_tourney_info(driver, URL_begin))
 # print(cmg_tourney_region(driver, URL_begin)) 
