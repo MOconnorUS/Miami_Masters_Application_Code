@@ -45,15 +45,15 @@ def write_all(data):
     for i in data:
         tournament_num = {
             "_id": num,
-            "date": i["date"],
-            "time": i["time"],
-            "title": i["title"],
-            "entry": i["entry"],
-            "region": i["region"],
-            "platforms": i["platforms"],
-            "game": i["game"],
-            "requirements": i["requirements"],
-            "skill": i["skill"]
+            "date": i.get_date(),
+            "time": i.get_time(),
+            "title": i.get_title(),
+            "entry": i.get_entry(),
+            "region": i.get_region(),
+            "platforms": i.get_platforms(),
+            "game": i.get_game(),
+            "requirements": i.get_requirements(),
+            "skill": i.get_skill()
         }
 
         collection_name.insert_one(tournament_num)
@@ -70,83 +70,12 @@ def write_all_links(data):
 
         link_num = {
             "_id": num,
-            "url": data[num]
+            "date": i.get_date(),
+            "time": i.get_time(),
+            "url": i.get_url()
         }        
 
         collection_name.insert_one(link_num)
         num += 1
 
     return None
-
-
-
-
-# Write all data to CSV file
-# Input: data to write, optional path but will default to tournaments_data.csv
-# Returns: None
-# def write_all(data, path = "tournaments_data.csv"):
-
-#     # Header for CSV file
-#     header = ['Date', 'Time', 'Title', 'Entry', 'Team Size', 'Platforms', 'Gamemode']
-#     field_names = ["date", "time", "title", "entry", "size", "platforms", "gamemode"]
-
-#     # Case: 'tournaments data' file does not exist
-#     # if not(os.path.isfile(path)):
-#     with open(path, 'w', newline='') as f:
-#         writer = csv.writer(f)
-#         writer.writerow(header)
-#         dict_writer = csv.DictWriter(f, fieldnames=field_names)
-#         dict_writer.writerows(data)
-
-#         print("Done. New file Created")
-#         return None
-
-
-    # Case: 'tournaments data' exists
-    # else:
-    #     with open(path, 'r') as fr:
-    #         read_data = []
-    #         reader = csv.reader(fr)
-
-    #         for line in reader:
-    #             if line[4] != 'Size':
-    #                 line[4] = eval(line[4])
-    #             read_data.append(line)
-
-    #         # removing unneeded header info
-    #         read _ data = read_data[1:len(read_data)]
-
-    # OVERALL_WRITE = 0
-    # WRITE_FLAG = 0
-    # new_data = []
-    # for d in data:
-    #     d_vals = list(d.values())
-    #     for rd in read_data:
-    #         if rd == d_vals:
-    #             WRITE_FLAG = 0
-    #             break
-    #         else:
-    #             WRITE_FLAG = 1
-    #     if WRITE_FLAG:
-    #         new_data.append(d_vals)
-    #         OVERALL_WRITE = 1
-    #         WRITE_FLAG = 0
-    # all_data = new_data
-    # if OVERALL_WRITE:
-    #     with open(path, 'w', newline = '') as fw:
-    #         writer = csv.writer(fw)
-    #         writer.writerow(header)
-    #         for ad in all_data:
-    #             writer.writerow(ad)
-    #         print("Done. New data written.")
-    #         return None
-    # else:
-    #     print("Done. No new data written.")
-    # return None
-
-# print(write_all(test_data, "tournaments_data.csv"))
-            
-
-            
-
-

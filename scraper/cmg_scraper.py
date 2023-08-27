@@ -98,18 +98,17 @@ def get_link(driver, URL_begin):
     return paths
 
 class CMG_Tourney:
-    def __init__(self, driver, url):
-        cmg_info = cmg_tourney_info(driver, url)
-        self.date = cmg_info['date']
-        self.time = cmg_info['time']
-        self.title = cmg_info['title']
-        self.entry = cmg_info['entry']
-        self.region = cmg_info['region']
-        self.platforms = cmg_info['platforms']
-        self.game = cmg_info['game']
-        self.requirements = cmg_info['requirements']
-        self.skill = cmg_info['skill']
-        self.url = url
+    def __init__(self):
+        self.date = None
+        self.time = None
+        self.title = None
+        self.entry = None
+        self.region = None
+        self.platforms = None
+        self.game = None
+        self.requirements = None
+        self.skill = None
+        self.url = None
 
     # Inputs: soup
     # Returns the a list with the date and time
@@ -131,7 +130,7 @@ class CMG_Tourney:
         fin_datetime = []
         fin_datetime.append(date)
         fin_datetime.append(fin_time)
-    
+
         return fin_datetime
 
     # Inputs: soup
@@ -193,7 +192,7 @@ class CMG_Tourney:
         entry_str = entry_res.text.strip()
         entry_long = entry_str[entry_str.find('\n') + 1:]
         entry = entry_long[0:entry_long.find('\n')]
-    
+        
         return entry
 
     # Inputs: soup
@@ -225,7 +224,7 @@ class CMG_Tourney:
     # Inputs: driver, URL
     # Returns a dictionary containing all values we are looking for
     # date, time, title, platforms, game, region, skill, entry, requirements
-    def __cmg_tourney_info(driver, URL):
+    def cmg_tourney_info(self, driver, URL):
         driver.get(URL)
 
         time.sleep(5)
@@ -233,12 +232,18 @@ class CMG_Tourney:
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         date_time = self.__datetime(soup)
-        date = date_time[0]
+        dates = date_time[0]
         ttime = date_time[1]
+
+        self.date = dates
+        self.time = ttime
 
         title_platforms = self.__title_plat(soup)
         title = title_platforms[0]
         platforms = title_platforms[1]
+
+        self.title = title
+        self.platforms = platforms
 
         skill_list = self.__skill(soup)
         skills = ''
@@ -252,53 +257,42 @@ class CMG_Tourney:
         entryfee = self.__entry(soup)
         req = self.__req(soup)
         games = self.__game(soup)
+
+        self.region = regions
+        self.entry = entryfee
+        self.requirements = req
+        self.game = games
+        self.url = URL
     
-        info = {"date": date, "time": ttime, "title": title, "entry": entryfee, "region": regions, "platforms": platforms, "game": games, "requirements": req, "skill": skills}
+        info = {"date": dates, "time": ttime, "title": title, "entry": entryfee, "region": regions, "platforms": platforms, "game": games, "requirements": req, "skill": skills}
         return info
 
-    def get_date():
+    def get_date(self):
         return self.date
     
-    def get_time():
+    def get_time(self):
         return self.time
 
-    def get_title():
+    def get_title(self):
         return self.title
 
-    def get_entry():
+    def get_entry(self):
         return self.entry
 
-    def get_region():
+    def get_region(self):
         return self.region
 
-    def get_platforms():
+    def get_platforms(self):
         return self.platforms
 
-    def get_game():
+    def get_game(self):
         return self.game
 
-    def get_requirements():
+    def get_requirements(self):
         return self.requirements
 
-    def get_skill():
+    def get_skill(self):
         return self.skill
 
-    def get_url():
+    def get_url(self):
         return self.url
-
-# print(cmg_tourney_info(driver, URL_begin))
-# print(cmg_tourney_region(driver, URL_begin)) 
-# cmg_tourney_region(driver, URL_begin)
-# cmg_tourney_info(driver, URL_begin)
-# get_link(driver, URL_begin)
-# get_curr_time()
-# get_datetime(driver, URL)
-# get_title_plat(driver, URL)
-# get_skill(driver, URL)
-# get_region(driver, URL)
-# get_entry(driver, URL)
-# get_cmg(driver, URL)
-# get_req(driver, URL)
-# get_game(driver, URL)
-# print(get_cmg(driver, URL))
-# print(get_link(driver, URL_begin))
