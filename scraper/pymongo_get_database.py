@@ -1,4 +1,11 @@
+#### Miami 4 + 1 Masters Application Object Oriented Project
+#### Matthew O'Connor
+
+# Imports
 from pymongo import MongoClient
+
+# Creates connection between the user and a MongoDB database 
+# (Current information for the connection string and client is fake)
 def get_database():
  
    # Provide the mongodb atlas url to connect python to mongodb using pymongo

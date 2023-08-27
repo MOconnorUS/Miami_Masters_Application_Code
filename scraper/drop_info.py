@@ -1,6 +1,12 @@
+#### Miami 4 + 1 Masters Application Object Oriented Project
+#### Matthew O'Connor
+
+# Imports
 from pymongo_get_database import get_database
 import pymongo
 
+# All information within the tournaments document is dropped
+# @return None
 def drop_all_tourneys():
     dbname = get_database()
     collection_name = dbname["tournaments"]
@@ -9,6 +15,8 @@ def drop_all_tourneys():
 
     return None
 
+# All information within the links document is dropped
+# @return None
 def drop_all_links():
     dbname = get_database()
     collection_name = dbname["links"]
@@ -17,6 +25,5 @@ def drop_all_links():
 
     return None   
 
-# drop_all()
 
     

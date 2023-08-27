@@ -1,5 +1,5 @@
-#### uSync LLC
-#### Matthew O'Connor, Co-Founder
+#### Miami 4 + 1 Masters Application Object Oriented Project
+#### Matthew O'Connor
 
 # Imports
 from bs4 import BeautifulSoup
@@ -17,30 +17,20 @@ from dateutil import tz
 from dateutil.parser import parse
 from datetime import datetime
 
-# Test Data
-# Codagent tournament page, testing valid tournaments
-# URL = https://esportsagent.gg/tournament
+### Information being extracted ###
+# Date and Time 
+# Tournament Title 
+# Entry Fee 
+# Platforms 
+# Regions 
+# Skill 
+# Requirements 
+# Game 
+# URL 
 
-# Info
-# Date and Time
-# Per Person/Entry
-# Team Size
-# Format
-# Game
-# Platform
-# Link
-
-# **Notes**
-# Need to sift through titles to see if there is a '*' and if so move everything until the next '*' to requirements if it doesnt contain
-# a skill requirement within it, need to look for one of the various skill levels and check if there is a no before it 
-# if so then import "no skill" into skill else import "skill only" into skill
-# Need to check to see what platforms it contains and then do either console only or NONE
-# Filter game to only contain MW2
-
-# URL = "https://esportsagent.gg/tournament/13162598"
-# URL_begin = "https://esportsagent.gg/tournament"
-# driver = webdriver.Chrome(ChromeDriverManager().install())
-
+# @soup a beautifulsoup4 element
+# extracts the date and time from a given page
+# @return a list of the date and time
 def get_dates(soup):
         datetimes_res = soup.find_all('div', {'class': 'text-gray-700 text-[13px] uppercase letter tracking-wide'})
     
@@ -56,9 +46,10 @@ def get_dates(soup):
     
         return datetimes_list
 
-# Inputs: driver, URL_begin
-# Returns: a list of all the valid tournament links for the day
-# Note: esportsagent.gg returns <Response [500]> if broken link and <Response [200]> if valid
+# @driver a selenium webdriver
+# @url_begin the initial tournament page URL
+# compares date and time of tournaments found to the current date and time to ensure tournaments are valid
+# @return a list of valid tournament ids
 def get_tournament_ids(driver, URL_begin):
     init_id_list = []
     id_list = []
@@ -82,22 +73,10 @@ def get_tournament_ids(driver, URL_begin):
 
     return id_list
 
-    def get_tournament_link(id_list, URL):
-        tournament_links = []
-    
-        for i in range(len(id_list)):
-            tournament_links.append(URL + str(id_list[i]['url']))
-
-        link_list = []
-        for link in range(len(tournament_links)):
-            temp = {'date': id_list[link]['date'], 'time': id_list[link]['time'], 'url': tournament_links[link]}
-            link_list.append(temp)
-
-        return link_list
-
+# EAGENT Tournament Object
 class EAGENT_Tourney:
-    def __init__(self, driver, url):
-        tourney_info = get_tournament_info(driver, url)
+    # Default constructor initializing all parameters of the Object
+    def __init__(self):
         self.date = None
         self.time = None
         self.title = None
@@ -109,6 +88,9 @@ class EAGENT_Tourney:
         self.skill = None
         self.url = None
 
+    # @x the time extracted from a tournament
+    # converts the time and date of a tournament to EST from UTC
+    # @return the corrected EST time
     def __conv_time(x):
         x_str = x.strftime("%Y-%m-%d %H:%M:%S")
         from_zone = tz.gettz('UTC')
@@ -122,26 +104,24 @@ class EAGENT_Tourney:
         # print(east)
         return east
 
+    # @soup a beautifulsoup4 element
+    # extracts the date and time of a tournament
+    # @return the correct EST date and time of the given tournament
     def __datetime(self, soup):
-        # Date and time, look words but figure out if its needed or if i can loop through all available tournaments in the data writer
-        # IMPORTANT: look at main in the esportsagent git hub under the ld3 branch and see what he does to create a list of dictionaries rather
-        # than dictionary of lists
-        # div tag is 'text-gray-500 uppercase text-sm font-roboto'
         date_time_res = soup.find_all('div', {'class': 'text-gray-500 uppercase text-sm font-roboto'})
         date_time = date_time_res[0].text.strip()
         date_time_list = date_time.split()
         date = date_time_list[0] + " " + date_time_list[1] + " " + date_time_list[2]
-        # print(date)
+
         time = date_time_list[3]
         ampm = date_time_list[4]
-        # print(time)
-        # print(ampm)
+
         time_parsed = parse(time)
-        # print(type(time_parsed))
+
         res = self.__conv_time(time_parsed)
-        # print(res)
+
         mins = ""      
-        # print(type(res.hour))
+
         new_time = ''
     
         # If the minute = 0 it will add another 0 otherwise it will only output 1 0 in result
@@ -188,6 +168,9 @@ class EAGENT_Tourney:
         
         return datetime_list
     
+    # @soup a beautifulsoup4 element
+    # extracts the title from a given tournament and the requirements & skill from the full title
+    # @return a list with the title, requirements, and skill
     def __extract_title_req_skill(soup):
         title_res = soup.find_all('span', {'class': 'font-semibold text-2xl lg:text-3xl max-w-[420px] break-words text-white'})
         if len(title_res) < 1:
@@ -246,15 +229,19 @@ class EAGENT_Tourney:
 
         return title_req_skill_list
 
+    # @soup a beautifulsoup4 element
+    # extracts the entry fee from a given tournament
+    # @return the entry fee from the given tournament
     def __entryfee(soup):
         per_person_res = soup.find_all('span', {'class': 'font-semibold text-white'})
         per_person = per_person_res[0].text.strip()
 
         return per_person
 
+    # @soup a beautifulsoup4 element
+    # extracts the platforms from a given tournament
+    # @return the platforms from the given tournament
     def __extract_platforms(soup):
-        # Platforms
-        # div is 'flex gap-1
         logo_res = soup.find('div', {'class': 'flex gap-1'}).find_all('img')
         platforms = []
         logo_list = []
@@ -289,20 +276,28 @@ class EAGENT_Tourney:
 
         return plat
 
+    # @soup a beautifulsoup4 element
+    # extracts the region from a given tournament
+    # @return the region from the given tournament
     def __extract_region(soup):
         region_res = soup.find_all('span', {'class': 'uppercase text-[#8E8EA1] text-sm px-3'})
         region = region_res[0].text.strip()
 
         return region
 
+    # @soup a beautifulsoup4 element
+    # extracts the game from a given tournament
+    # @return the game from the given tournament
     def __extract_game(soup):
         game_res = soup.find_all('span', {'class': 'uppercase text-[#8E8EA1] text-sm pr-3'})
         games = game_res[0].text.strip()
 
         return games
 
-    # Inputs: self, driver, tourney URL
-    # Returns: all tournament information
+    # @driver a selenium webdriver
+    # @url a specific eagent tournament URL
+    # All methods are called and all parameters of the Object are now filled
+    # @return a dictionary containing all the information extracted from a specific tournament
     def get_tournament_info(self, driver, URL):
         driver.get(URL)
 
@@ -312,11 +307,7 @@ class EAGENT_Tourney:
         game = ''
         info = {}
         if games == 'Modern Warfare II':
-            game = games    
-
-            # # Date and time, look words but figure out if its needed or if i can loop through all available tournaments in the data writer
-            # # IMPORTANT: look at main in the esportsagent git hub under the ld3 branch and see what he does to create a list of dictionaries rather
-            # # than dictionary of lists
+            game = games
             
             datetime_list = self.__datetime(self, soup)
             date = datetime_list[0]
@@ -324,11 +315,6 @@ class EAGENT_Tourney:
 
             self.date = date
             self.time = new_time
-
-            # Tourney Title, Requirements from title, Skill from title
-            # span for white text is 'font-semibold text-2xl lg:text-3x1 max-w-[420px] break-words text-white'
-            # span for gold text is 'font-semibold text-2xl lg:text-3xl max-w-[420px] break-words text-gold'
-            # Gold text is only when the title_res is less than 1
     
             title_req_skill_list = self.__extract_title_req_skill(soup)
             title = title_req_skill_list[0]
@@ -339,22 +325,14 @@ class EAGENT_Tourney:
             self.req = req
             self.skill = skill
 
-            # Entry/Per Person
-            # span was 'font-semibold text-white'
-            # per_person_res = soup.find_all('span', {'class': 'font-semibold text-white'})
-            # per_person = per_person_res[0].text.strip()
             entry_fee = self.__entryfee(soup)
 
             self.entry_fee = entry_fee
 
-            # Platforms
-            # div is 'flex gap-1
             plat = self.__extract_platforms(soup)
 
             self.platforms = plat
-    
-            # Region
-            # span is 'uppercase text-[#8E8EA1] text-sm px-3'
+
             region = self.__extract_region(soup)
 
             self.region = region
@@ -363,32 +341,42 @@ class EAGENT_Tourney:
             info = {"date": date, "time": new_time, "title": title, "entry": entry_fee, "region": region, "platforms": plat, "game": game, "requirements": req, "skill": skill}
         return info
 
+    # @return the date stored within the object
     def get_date(self):
         return self.date
     
+    # @return the time stored within the object
     def get_time(self):
         return self.time
 
+    # @return the title stored within the object
     def get_title(self):
         return self.title
 
+    # @return the entry stored within the object
     def get_entry(self):
         return self.entry
 
+    # @return the region stored within the object
     def get_region(self):
         return self.region
 
+    # @return the platforms stored within the object
     def get_platforms(self):
         return self.platforms
 
+    # @return the game stored within the object
     def get_game(self):
         return self.game
 
+    # @return the requirements stored within the object
     def get_requirements(self):
         return self.requirements
 
+    # @return the skill stored within the object
     def get_skill(self):
         return self.skill
 
+    # @return the url stored within the object
     def get_url(self):
         return self.url

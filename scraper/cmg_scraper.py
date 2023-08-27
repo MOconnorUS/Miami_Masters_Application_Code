@@ -1,5 +1,5 @@
-#### uSync LLC
-#### Matthew O'Connor, Co-Founder
+#### Miami 4 + 1 Masters Application Object Oriented Project
+#### Matthew O'Connor
 
 # Imports
 from bs4 import BeautifulSoup
@@ -17,7 +17,7 @@ import datetime
 import time
 import math
 
-# Info
+### Information being extracted ###
 # Date and Time 
 # Tournament Title 
 # Entry Fee 
@@ -28,9 +28,9 @@ import math
 # Game 
 # URL 
 
-# URL = "https://www.checkmategaming.com/tournament/cross-platform/call-of-duty-modern-warfare-ii/console-only-2v2-snd-best-of-1-190448"
-# URL_begin = "https://www.checkmategaming.com/tournament/cross-platform/call-of-duty-modern-warfare-ii"
-# driver = webdriver.Chrome(ChromeDriverManager().install())
+# @paths a list of URLs
+# Removes all duplicates
+# @return a list of unique URLs
 def clean_links(paths):
     dupes = []
     unique = []
@@ -43,14 +43,12 @@ def clean_links(paths):
 
     return unique
 
-# Inputs: driver, URL_begin
-# Returns the links of the tournaments
-# uses WebDriverWait until the expected conditions of the XPATH are found
-# XPATH of the tournaments is //a[contains(text(), View Tournament)]
-# Attribute of the path is href
+# @driver a selenium webdriver
+# @url_begin the initial tournament page URL
+# automatically navigates through all tournament pages to extract all URLs
+# @return a list of urls
 def get_link(driver, URL_begin):
     driver.get(URL_begin)
-    # soup = BeautifulSoup(driver.page_source, 'html.parser')
 
     num_tourneys_res = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, 'pagination-count')))
     num_tourneys_list = num_tourneys_res.text.split(' ')
@@ -84,20 +82,17 @@ def get_link(driver, URL_begin):
         except TimeoutException:
             break
         except StaleElementReferenceException:
-            # popup_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "mdl-button.mdl-js-button.css-ripple-effect.dark-button-secondary.button-small.css-ripple-activated")))
-            # popup_button.click()
             break
         except ElementClickInterceptedException:
-            # next_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "mdl-button.mdl-js-button.css-ripple-effect.dark-button-secondary.button-small.css-ripple-activated")))
-            # next_button.click()
-            # get_link(driver, URL_begin)
             break
 
     paths = clean_links(paths)
 
     return paths
 
+# CMG Tournament Object
 class CMG_Tourney:
+    # Default constructor initializing all parameters of the Object
     def __init__(self):
         self.date = None
         self.time = None
@@ -110,9 +105,9 @@ class CMG_Tourney:
         self.skill = None
         self.url = None
 
-    # Inputs: soup
-    # Returns the a list with the date and time
-    # element with the date and time is a span with class tournament-details-date-text
+    # @soup a beautifulsoup4 element
+    # extracts the date and time from an individual tournament page
+    # @return a list containing the date and time of the specific tournament page
     def __datetime(soup):
         date_time_res = soup.find_all('span', {'class': 'tournament-details-date-text'})
         date_time_abrev = date_time_res[0].text.strip()
@@ -133,9 +128,9 @@ class CMG_Tourney:
 
         return fin_datetime
 
-    # Inputs: soup
-    # Returns a list containing the title and platform
-    # element containing the title and platform is an h4 tag
+    # @soup a beautifulsoup4 element
+    # extracts the title and platforms from an inidivual tournament page
+    # @return a list containing the title and platforms of the specific tournament page 
     def __title_plat(soup):
         title_res = soup.find('h4')
         title_strip = title_res.text.strip()
@@ -164,9 +159,9 @@ class CMG_Tourney:
 
         return title_plat
 
-    # Inputs: soup
-    # Returns the skill
-    # element with the skill is a span with class elo-skill-level
+    # @soup a beautifulsoup4 element
+    # extracts the skill from an individual tournament page
+    # @return the skill present on the specific tournament page
     def __skill(soup):
         skill_res = soup.find_all('span', {'class': 'elo-skill-level'})
         skill = []
@@ -175,18 +170,18 @@ class CMG_Tourney:
 
         return skill
 
-    # Inputs: soup
-    # Returns the region
-    # element with region is a span with class region-transparent-container
+    # @soup a beautifulsoup4 element
+    # extracts the region from an individual tournament page
+    # @return the region present on the specific tournament page
     def __region(soup):
         region_res = soup.find('span', {'class': 'region-transparent-container'})
         region = region_res.text.strip()
     
         return region
 
-    # Inputs: soup
-    # Returns the entry fee
-    # element with requirements is a div with class tournament-details-entry-info
+    # @soup a beautifulsoup4 element
+    # extracts the entry from an individual tournament page
+    # @return the region present on the specific tournament page
     def __entry(soup):
         entry_res = soup.find('div', {'class': 'tournament-details-entry-info'})
         entry_str = entry_res.text.strip()
@@ -195,9 +190,9 @@ class CMG_Tourney:
         
         return entry
 
-    # Inputs: soup
-    # Returns the requirements
-    # element with requirements is a span with class tournament-details-ruleset-text
+    # @soup a beautifulsoup4 element
+    # extracts the requirements from an individual tournament page
+    # @return the requirements on the specific tournament page 
     def __req(soup):
         req_res = soup.find('span', {'class': 'tournament-details-ruleset-text'})
         if req_res == None:
@@ -210,9 +205,9 @@ class CMG_Tourney:
 
             return req
 
-    # Inputs: soup
-    # Returns the game
-    # element with game currently is a div with class tournament-details-info-header
+    # @soup a beautifulsoup4 element
+    # extracts the game from an individual tournament page
+    # @return the game on the specific tournament page
     def __game(soup):
         game_res = soup.find('div', {'class': 'tournament-details-info-header'})
         game_str = game_res.text.strip()
@@ -221,9 +216,10 @@ class CMG_Tourney:
 
         return game
 
-    # Inputs: driver, URL
-    # Returns a dictionary containing all values we are looking for
-    # date, time, title, platforms, game, region, skill, entry, requirements
+    # @driver a selenium webdriver
+    # @url the url of a specific tournament
+    # All methods are called and all parameters of the Object are now filled
+    # @return a dictionary containing all the information extracted from a specific tournament
     def cmg_tourney_info(self, driver, URL):
         driver.get(URL)
 
@@ -267,32 +263,42 @@ class CMG_Tourney:
         info = {"date": dates, "time": ttime, "title": title, "entry": entryfee, "region": regions, "platforms": platforms, "game": games, "requirements": req, "skill": skills}
         return info
 
+    # @return the date stored within the object
     def get_date(self):
         return self.date
     
+    # @return the time stored within the object
     def get_time(self):
         return self.time
 
+    # @return the title stored within the object
     def get_title(self):
         return self.title
 
+    # @return the entry stored within the object
     def get_entry(self):
         return self.entry
 
+    # @return the region stored within the object
     def get_region(self):
         return self.region
 
+    # @return the platforms stored within the object
     def get_platforms(self):
         return self.platforms
 
+    # @return the game stored within the object
     def get_game(self):
         return self.game
 
+    # @return the requirements stored within the object
     def get_requirements(self):
         return self.requirements
 
+    # @return the skill stored within the object
     def get_skill(self):
         return self.skill
 
+    # @return the url stored within the object
     def get_url(self):
         return self.url
